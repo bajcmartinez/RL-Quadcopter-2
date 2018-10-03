@@ -1,5 +1,6 @@
 import numpy as np
 from physics_sim import PhysicsSim
+from math import sqrt
 
 class Task():
     """Task (environment) that defines the goal and provides feedback to the agent."""
@@ -29,13 +30,26 @@ class Task():
     def get_reward(self):
         """Uses current pose of sim to return reward."""
         #reward = 1.-.3*(abs(self.sim.pose[:3] - self.target_pos)).sum()
-
         ed = (abs(self.sim.pose[:3] - self.target_pos)).sum()
-        acc = np.linalg.norm(self.sim.linear_accel)
+        vel = np.linalg.norm(self.sim.v)
 
-        reward = 5-(ed**2/10) # the lower ed, the closest the reward gets to 0
+        reward = 1-(sqrt(ed)/4) # the lower ed, the closest the reward gets to 0
 
-        reward = (reward - (0.3 * acc)) # penalize fast acceleration
+        vel_penalty = (0.03 * vel) # penalize fast speeds
+        reward -= min(max(vel_penalty, -0.6), 0.6)
+
+        reward = min(max(reward, -1), 1)
+
+        # bonus if the thing is flying at a nice height
+        if self.sim.pose[2] > self.target_pos[2]-0.1 and self.sim.pose[2] < self.target_pos[2]+0.1:
+            reward += 2
+        elif self.sim.pose[2] > self.target_pos[2]-1.0 and self.sim.pose[2] < self.target_pos[2]+1.0:
+            reward += 1
+
+        # penalize for crashing
+        if self.sim.pose[2] <= 0.0:
+            reward -= 10
+
         return reward
 
     def step(self, rotor_speeds):

@@ -1,0 +1,10 @@
+.document-editor .page {
+  width: 100%;
+  height: 300px;
+  background-color: #fff;
+}
+
+.document-editor .column {
+  float: left;
+  width: 50%;
+}

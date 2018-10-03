@@ -1,4 +1,4 @@
-from keras import layers, models, optimizers
+from keras import layers, models, optimizers, regularizers, initializers
 from keras import backend as K
 import numpy as np
 import random
@@ -33,14 +33,8 @@ class Actor:
 
         # Add hidden layers
         net = layers.Dense(units=32, activation='relu')(states)
-        net = layers.BatchNormalization()(net)
-        net = layers.Dropout(0.5)(net)
         net = layers.Dense(units=64, activation='relu')(net)
-        net = layers.BatchNormalization()(net)
-        net = layers.Dropout(0.5)(net)
         net = layers.Dense(units=32, activation='relu')(net)
-        net = layers.BatchNormalization()(net)
-        net = layers.Dropout(0.5)(net)
 
         # Try different layer sizes, activations, add batch normalization, regularizers, etc.
 
@@ -94,19 +88,11 @@ class Critic:
 
         # Add hidden layer(s) for state pathway
         net_states = layers.Dense(units=32, activation='relu')(states)
-        net = layers.BatchNormalization()(net_states)
-        net = layers.Dropout(0.5)(net_states)
         net_states = layers.Dense(units=64, activation='relu')(net_states)
-        net = layers.BatchNormalization()(net_states)
-        net = layers.Dropout(0.5)(net_states)
 
         # Add hidden layer(s) for action pathway
         net_actions = layers.Dense(units=32, activation='relu')(actions)
-        net = layers.BatchNormalization()(net_actions)
-        net = layers.Dropout(0.5)(net_actions)
         net_actions = layers.Dense(units=64, activation='relu')(net_actions)
-        net = layers.BatchNormalization()(net_actions)
-        net = layers.Dropout(0.5)(net_actions)
 
         # Try different layer sizes, activations, add batch normalization, regularizers, etc.
 
@@ -206,8 +192,8 @@ class DDPG():
 
         # Noise process
         self.exploration_mu = 0
-        self.exploration_theta = 0.15
-        self.exploration_sigma = 0.2
+        self.exploration_theta = 0.08
+        self.exploration_sigma = 0.15
         self.noise = OUNoise(self.action_size, self.exploration_mu, self.exploration_theta, self.exploration_sigma)
 
         # Replay memory
@@ -216,8 +202,8 @@ class DDPG():
         self.memory = ReplayBuffer(self.buffer_size, self.batch_size)
 
         # Algorithm parameters
-        self.gamma = 0.99  # discount factor
-        self.tau = 0.01  # for soft update of target parameters
+        self.gamma = 0.95  # discount factor
+        self.tau = 0.001  # for soft update of target parameters
 
         self.best_score = -np.inf
         self.num_steps = 0
